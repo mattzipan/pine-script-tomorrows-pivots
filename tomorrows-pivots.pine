@@ -69,7 +69,7 @@ var line lH1 = na, var line lH2 = na, var line lH3 = na, var line lH4 = na, var 
 // 6. Live Update on the Last Bar
 if barstate.islast
     // Daily Projections (Tomorrow)
-    lP  := update_projection_line(lP,  tomorrowStart, tomorrowEnd, P,  color.white, 2, line.style_solid)
+    lP  := update_projection_line(lP,  tomorrowStart, tomorrowEnd, P,  color.white, 2, line.style_dotted)
     lR1 := update_projection_line(lR1, tomorrowStart, tomorrowEnd, R1, color.new(color.gray, 50), 1, line.style_solid)
     lR2 := update_projection_line(lR2, tomorrowStart, tomorrowEnd, R2, color.new(color.gray, 50), 1, line.style_solid)
     lR3 := update_projection_line(lR3, tomorrowStart, tomorrowEnd, R3, color.new(color.gray, 50), 1, line.style_solid)
