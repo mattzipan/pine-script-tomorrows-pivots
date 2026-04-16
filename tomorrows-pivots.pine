@@ -15,6 +15,13 @@ wHighPrev  = request.security(syminfo.tickerid, "W", high[1])
 wLowPrev   = request.security(syminfo.tickerid, "W", low[1])
 wClosePrev = request.security(syminfo.tickerid, "W", close[1])
 
+// Historical Weekly Pivots (Pivots for the last 5 weeks)
+[wp1, ts1, te1] = request.security(syminfo.tickerid, "W", [(high[2]+low[2]+close[2])/3, time[1], time_close[1]])
+[wp2, ts2, te2] = request.security(syminfo.tickerid, "W", [(high[3]+low[3]+close[3])/3, time[2], time_close[2]])
+[wp3, ts3, te3] = request.security(syminfo.tickerid, "W", [(high[4]+low[4]+close[4])/3, time[3], time_close[3]])
+[wp4, ts4, te4] = request.security(syminfo.tickerid, "W", [(high[5]+low[5]+close[5])/3, time[4], time_close[4]])
+[wp5, ts5, te5] = request.security(syminfo.tickerid, "W", [(high[6]+low[6]+close[6])/3, time[5], time_close[5]])
+
 // 2. Pivot Calculations
 // Tomorrow's Daily Pivots (Forecast from today's live data)
 P  = (dHigh + dLow + dClose) / 3
@@ -56,6 +63,9 @@ var line lS1 = na, var line lS2 = na, var line lS3 = na
 var line lWP = na
 var line lWP_forecast = na
 
+// Historical Weekly lines
+var line lH1 = na, var line lH2 = na, var line lH3 = na, var line lH4 = na, var line lH5 = na
+
 // 6. Live Update on the Last Bar
 if barstate.islast
     // Daily Projections (Tomorrow)
@@ -67,11 +77,18 @@ if barstate.islast
     lS2 := update_projection_line(lS2, tomorrowStart, tomorrowEnd, S2, color.new(color.gray, 50), 1, line.style_solid)
     lS3 := update_projection_line(lS3, tomorrowStart, tomorrowEnd, S3, color.new(color.gray, 50), 1, line.style_solid)
     
-    // Weekly Pivot (Current Week - Solid)
+    // Weekly Pivot (Current Week - Solid Thick)
     lWP := update_projection_line(lWP, currentWeekStart, currentWeekEnd, wP, color.white, 3, line.style_solid)
     
-    // Weekly Pivot Forecast (Next Week - Dotted)
+    // Weekly Pivot Forecast (Next Week - Dotted Thick)
     lWP_forecast := update_projection_line(lWP_forecast, nextWeekStart, nextWeekEnd, wP_forecast, color.white, 3, line.style_dotted)
+
+    // Historical Weekly Pivots (Last 5 Weeks - Solid Thin)
+    lH1 := update_projection_line(lH1, ts1, te1, wp1, color.white, 1, line.style_solid)
+    lH2 := update_projection_line(lH2, ts2, te2, wp2, color.white, 1, line.style_solid)
+    lH3 := update_projection_line(lH3, ts3, te3, wp3, color.white, 1, line.style_solid)
+    lH4 := update_projection_line(lH4, ts4, te4, wp4, color.white, 1, line.style_solid)
+    lH5 := update_projection_line(lH5, ts5, te5, wp5, color.white, 1, line.style_solid)
 
 // 7. EMA 200
 ema200 = ta.ema(close, 200)
