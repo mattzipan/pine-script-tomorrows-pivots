@@ -1,0 +1,78 @@
+//@version=5
+indicator("Pivot Projections (Daily & Weekly)", overlay=true, shorttitle="Pivots")
+
+// 1. Fetch Data (Updates live)
+dHigh  = request.security(syminfo.tickerid, "D", high)
+dLow   = request.security(syminfo.tickerid, "D", low)
+dClose = request.security(syminfo.tickerid, "D", close)
+
+// Weekly Data: Current (for forecast) and Previous (for current week levels)
+wHigh      = request.security(syminfo.tickerid, "W", high)
+wLow       = request.security(syminfo.tickerid, "W", low)
+wClose     = request.security(syminfo.tickerid, "W", close)
+
+wHighPrev  = request.security(syminfo.tickerid, "W", high[1])
+wLowPrev   = request.security(syminfo.tickerid, "W", low[1])
+wClosePrev = request.security(syminfo.tickerid, "W", close[1])
+
+// 2. Pivot Calculations
+// Tomorrow's Daily Pivots (Forecast from today's live data)
+P  = (dHigh + dLow + dClose) / 3
+R1 = (P * 2) - dLow
+S1 = (P * 2) - dHigh
+R2 = P + (dHigh - dLow)
+S2 = P - (dHigh - dLow)
+R3 = dHigh + 2 * (P - dLow)
+S3 = dLow - 2 * (dHigh - P)
+
+// Weekly Pivot Points
+wP          = (wHighPrev + wLowPrev + wClosePrev) / 3 // Current Week Pivot
+wP_forecast = (wHigh + wLow + wClose) / 3             // Next Week Forecast
+
+// 3. Define Time Windows
+tomorrowStart = time_close("D")
+tomorrowEnd   = tomorrowStart + (24 * 60 * 60 * 1000)
+
+currentWeekStart = time("W")
+currentWeekEnd   = time_close("W")
+
+nextWeekStart = currentWeekEnd
+nextWeekEnd   = nextWeekStart + (7 * 24 * 60 * 60 * 1000)
+
+// 4. Line Update Function
+update_projection_line(line_id, start_t, end_t, price, line_color, line_width, line_style) =>
+    if na(line_id)
+        line.new(start_t, price, end_t, price, xloc=xloc.bar_time, color=line_color, width=line_width, style=line_style)
+    else
+        line.set_xy1(line_id, start_t, price)
+        line.set_xy2(line_id, end_t, price)
+        line.set_style(line_id, line_style)
+        line_id
+
+// 5. Persistent Line Variables
+var line lP  = na
+var line lR1 = na, var line lR2 = na, var line lR3 = na
+var line lS1 = na, var line lS2 = na, var line lS3 = na
+var line lWP = na
+var line lWP_forecast = na
+
+// 6. Live Update on the Last Bar
+if barstate.islast
+    // Daily Projections (Tomorrow)
+    lP  := update_projection_line(lP,  tomorrowStart, tomorrowEnd, P,  color.white, 2, line.style_solid)
+    lR1 := update_projection_line(lR1, tomorrowStart, tomorrowEnd, R1, color.new(color.gray, 50), 1, line.style_solid)
+    lR2 := update_projection_line(lR2, tomorrowStart, tomorrowEnd, R2, color.new(color.gray, 50), 1, line.style_solid)
+    lR3 := update_projection_line(lR3, tomorrowStart, tomorrowEnd, R3, color.new(color.gray, 50), 1, line.style_solid)
+    lS1 := update_projection_line(lS1, tomorrowStart, tomorrowEnd, S1, color.new(color.gray, 50), 1, line.style_solid)
+    lS2 := update_projection_line(lS2, tomorrowStart, tomorrowEnd, S2, color.new(color.gray, 50), 1, line.style_solid)
+    lS3 := update_projection_line(lS3, tomorrowStart, tomorrowEnd, S3, color.new(color.gray, 50), 1, line.style_solid)
+    
+    // Weekly Pivot (Current Week - Solid)
+    lWP := update_projection_line(lWP, currentWeekStart, currentWeekEnd, wP, color.white, 3, line.style_solid)
+    
+    // Weekly Pivot Forecast (Next Week - Dotted)
+    lWP_forecast := update_projection_line(lWP_forecast, nextWeekStart, nextWeekEnd, wP_forecast, color.white, 3, line.style_dotted)
+
+// 7. EMA 200
+ema200 = ta.ema(close, 200)
+plot(ema200, title="EMA 200", color=#add8e6, linewidth=3)
